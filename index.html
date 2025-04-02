@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disney Parks USA Strategic Analysis</title>
+<!-- Chart.js from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+:root {
+--blue: #0077c8;
+--dark-blue: #005a9c;
+--red: #dd0d26;
+--light-blue: #e6f7ff;
+--light-gray: #f5f5f5;
+--medium-gray: #ccc;
+--dark-gray: #555;
+--dark: #333;
+--success: #28a745;
+--warning: #ffc107;
+--danger: #dc3545;
+--purple: #57218c; /* Universal Color */
+--orange: #ff7f0e; /* Rival 1 Color from chart */
+--gray: #7f7f7f; /* Sub 1 Color from chart */
+--teal: #17a2b8; /* SeaWorld Color */
+}
+* {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    body {
+        background: var(--light-gray); /* Light background for contrast */
+        color: var(--dark);
+        line-height: 1.6;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 1140px; /* Standard width, good for landscape */
+        margin: 20px auto;
+        background: white;
+        box-shadow: 0 0 20px rgba(0,0,0,0.15);
+        padding: 30px;
+        border-radius: 8px;
+    }
+
+    header {
+        background-color: var(--blue);
+        color: white;
+        padding: 25px 30px;
+        text-align: center;
+        margin: -30px -30px 30px -30px; /* Extend to container edges */
+        border-radius: 8px 8px 0 0;
+    }
+
+    h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+     header p {
+         font-size: 18px;
+         color: rgba(255, 255, 255, 0.9);
+         margin-bottom: 0;
+     }
+
+
+    h2 {
+        font-size: 26px;
+        color: var(--dark-blue);
+        margin: 40px 0 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid var(--blue);
+        font-weight: 600;
+    }
+
+    h3 {
+        font-size: 22px;
+        color: var(--dark-blue);
+        margin: 25px 0 15px;
+        font-weight: 600;
+    }
+
+     h4 {
+        font-size: 18px;
+        color: var(--dark-gray);
+        margin: 20px 0 10px;
+        font-weight: 600;
+     }
+
+    p {
+        margin-bottom: 18px;
+        color: var(--dark-gray);
+    }
+
+    ul {
+        margin-left: 25px;
+        margin-bottom: 18px;
+        padding-left: 10px;
+    }
+    li {
+        margin-bottom: 8px;
+    }
+
+    .kpi-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .kpi-card {
+        background: var(--light-blue);
+        border: 1px solid var(--blue);
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+    }
+
+    .kpi-title {
+        font-size: 14px;
+        color: var(--dark-gray);
+        margin-bottom: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-value {
+        font-size: 30px;
+        font-weight: bold;
+        color: var(--dark-blue);
+    }
+     .kpi-note {
+         font-size: 12px;
+         color: var(--dark-gray);
+         margin-top: 5px;
+     }
+
+    .chart-container {
+        /* height: 450px; Set specific height if needed, else let aspect ratio control */
+        margin: 40px 0;
+        position: relative;
+        padding: 20px;
+        background: var(--light-gray);
+        border-radius: 8px;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+    .chart-container canvas {
+         max-height: 450px; /* Prevent charts from getting too tall */
+     }
+
+    .rating-bar-container {
+         margin-bottom: 20px;
+    }
+    .rating-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .rating-bar {
+        background: var(--medium-gray);
+        height: 20px;
+        border-radius: 10px;
+        overflow: hidden; /* Ensure fill stays within bounds */
+        position: relative;
+    }
+    .rating-fill {
+        height: 100%;
+        border-radius: 10px 0 0 10px; /* Round only the leading edge */
+        transition: width 0.5s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 10px;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .rating-low { background-color: var(--success); } /* Low Threat/Power = Green */
+    .rating-medium { background-color: var(--warning); color: var(--dark); } /* Moderate = Yellow */
+    .rating-high { background-color: var(--danger); } /* High Threat/Power = Red */
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        border-radius: 5px;
+        overflow: hidden; /* For border radius */
+    }
+    th, td {
+        padding: 12px 15px;
+        border: 1px solid #ddd; /* Use border instead of just bottom */
+        text-align: left;
+        vertical-align: middle;
+    }
+    th {
+        background-color: var(--dark-blue);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 14px;
+    }
+    tbody tr:nth-child(even) {
+        background-color: var(--light-gray);
+    }
+    tbody tr:hover {
+        background-color: var(--light-blue);
+    }
+    td .badge { margin-right: 5px;}
+
+    .highlight {
+        background-color: var(--light-blue);
+        padding: 20px;
+        border-left: 5px solid var(--blue);
+        margin: 25px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    .highlight p { margin-bottom: 0; }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        line-height: 1.5;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .badge-green { background-color: var(--success); }
+    .badge-yellow { background-color: var(--warning); color: var(--dark); }
+    .badge-red { background-color: var(--danger); }
+    .badge-blue { background-color: var(--blue); }
+    .badge-purple { background-color: var(--purple); }
+    .badge-teal { background-color: var(--teal); }
+    .badge-gray { background-color: var(--dark-gray); }
+
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .swot-box {
+        padding: 20px;
+        border-radius: 8px;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .swot-box h3 { color: white; margin-top: 0; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 10px;}
+    .swot-box ul { list-style: none; margin-left: 0; padding-left: 0;}
+    .swot-box li { padding-left: 20px; position: relative; }
+    .swot-box li::before {
+        content: '✓'; /* Check mark */
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+    }
+
+    .swot-strengths { background-color: var(--success); }
+    .swot-weaknesses { background-color: var(--danger); }
+    .swot-opportunities { background-color: var(--blue); }
+    .swot-threats { background-color: var(--warning); color: var(--dark); }
+    .swot-threats h3 { color: var(--dark); border-color: rgba(0,0,0,0.3); }
+    .swot-threats li::before { color: var(--dark); }
+
+
+    .recommendation {
+        background-color: var(--light-gray);
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid var(--medium-gray);
+        border-left: 5px solid var(--dark-blue);
+        border-radius: 0 8px 8px 0;
+    }
+    .recommendation h4 { margin-top: 0; color: var(--dark-blue); }
+    .recommendation ul { margin-bottom: 0; }
+
+    /* Seven Powers Visualization */
+    .seven-powers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .power-card {
+        border: 1px solid var(--medium-gray);
+        border-radius: 8px;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        text-align: center;
+    }
+    .power-card h4 {
+        margin: 0 0 10px 0;
+        color: var(--dark-blue);
+        font-size: 16px;
+    }
+    .power-strength {
+        font-weight: bold;
+        font-size: 14px;
+        padding: 5px 0;
+    }
+    .strength-high { color: var(--success); }
+    .strength-medium { color: var(--warning); }
+    .strength-low { color: var(--danger); }
+    .power-desc {
+        font-size: 13px;
+        color: var(--dark-gray);
+        margin-top: 10px;
+    }
+
+    /* VRIO Table Styles */
+    .vrio-table td, .vrio-table th { text-align: center; }
+    .vrio-table td:first-child, .vrio-table th:first-child { text-align: left; }
+    .vrio-score { font-weight: bold; font-size: 16px; }
+    .vrio-outcome { font-weight: bold; }
+
+     /* Legend styling */
+    .legend {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
+        margin-top: 10px;
+        padding: 10px;
+        background: var(--light-gray);
+        border-radius: 5px;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+    }
+    .legend-color {
+        width: 15px;
+        height: 15px;
+        margin-right: 8px;
+        border-radius: 3px;
+        border: 1px solid rgba(0,0,0,0.2);
+    }
+
+    /* Print specific styles (Optional, browser support varies) */
+    @media print {
+        body {
+            padding: 0;
+            background: #fff;
+            -webkit-print-color-adjust: exact; /* Force background colors in Chrome/Safari */
+            print-color-adjust: exact; /* Standard */
+        }
+        .container {
+            box-shadow: none;
+            padding: 15px;
+            max-width: 100%;
+            margin: 0;
+            border-radius: 0;
+        }
+        header {
+            margin: 0 0 20px 0;
+            border-radius: 0;
+            padding: 15px;
+        }
+        h1 { font-size: 24px; }
+        h2 { font-size: 20px; margin: 25px 0 15px; }
+        h3 { font-size: 18px; margin: 15px 0 10px; }
+        .kpi-container, .grid-2, .seven-powers-grid {
+            grid-template-columns: repeat(2, 1fr); /* Force 2 columns for better fit */
+        }
+        .chart-container {
+            padding: 10px;
+            margin: 20px 0;
+            page-break-inside: avoid; /* Try to keep charts on one page */
+        }
+        .recommendation, .swot-box, .power-card {
+             page-break-inside: avoid;
+        }
+        table { page-break-inside: avoid; }
+        /* Hide elements not essential for print if needed */
+        /* .non-printable { display: none; } */
+    }
+
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Disney Parks USA: Strategic Analysis & Competitive Positioning</h1>
+<p>Utilizing Porter's Five Forces, VRIO, Seven Powers & Value Curve Frameworks</p>
+</header>
+<section id="executive-summary">
+        <h2>Executive Summary</h2>
+
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-title">Experiences Revenue</div>
+                <div class="kpi-value">$34.2B</div>
+                <div class="kpi-note">FY24 Total Segment</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Experiences Op. Income</div>
+                <div class="kpi-value">$9.3B</div>
+                 <div class="kpi-note">FY24 Total Segment</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">US Parks Revenue</div>
+                <div class="kpi-value">$16.5B</div>
+                <div class="kpi-note">FY24 Estimate</div>
+            </div>
+             <div class="kpi-card">
+                <div class="kpi-title">Per Cap Spending</div>
+                <div class="kpi-value">+3%</div>
+                <div class="kpi-note">FY24 US Parks Growth</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">10-Year Capex Plan</div>
+                <div class="kpi-value">$60B</div>
+                 <div class="kpi-note">Experiences Segment</div>
+            </div>
+             <div class="kpi-card">
+                <div class="kpi-title">FY25 Planned Capex</div>
+                <div class="kpi-value">~$8B</div>
+                <div class="kpi-note">Experiences Segment</div>
+            </div>
+        </div>
+
+        <p>Disney's Experiences segment remains the cornerstone of the company, contributing the largest share of revenue ($34.2B) and operating income ($9.3B) in FY24. The US Parks business ($16.5B revenue est.) is central to this success, powered by Walt Disney World (WDW) and Disneyland Resort. These assets are fueled by significant planned investment ($60B over ten years) and sophisticated yield management, evidenced by a 3% rise in domestic per capita guest spending (FY24).</p>
+
+        <div class="highlight">
+            <strong>Major Competitive Challenge:</strong> Universal's Epic Universe (launching May 2025, ~$6B investment) poses the most significant competitive threat in decades. Analysts predict it could capture ~3.5 million visits annually from existing parks, with 75% (~2.6 million) potentially coming from Disney, potentially leading to a ~2% decline in Disney park attendance in CY25.
+        </div>
+
+        <p>This analysis employs multiple strategic frameworks to evaluate the competitive landscape and Disney Parks USA's sources of advantage. Key findings confirm Disney's Sustained Competitive Advantage derived from its unparalleled IP Portfolio, iconic Brand, massive Scale & Ecosystem, and Operational Expertise. However, intensifying rivalry, particularly from Universal, coupled with price sensitivity concerns, necessitates proactive strategic responses and flawless execution of its ambitious capex plan.</p>
+    </section>
+
+    <section id="industry-analysis">
+        <h2>Industry Analysis: Porter's Five Forces</h2>
+         <p>The US destination theme park industry structure generally favors incumbents like Disney, but competitive dynamics are shifting.</p>
+
+        <div class="rating-bar-container">
+            <div class="rating-label">
+                <span>Threat of New Entrants</span>
+                <span class="badge badge-yellow">Low to Moderate</span>
+            </div>
+            <div class="rating-bar">
+                <div class="rating-fill rating-medium" style="width: 35%" title="Low to Moderate (35%)"></div>
+            </div>
+            <p>Extremely high barriers: capital (~$6B+ for Epic Universe), land, IP, brand, operational complexity. Epic Universe's launch elevates the threat slightly, proving entry is possible for highly capitalized rivals, but replication of Disney's scale/IP remains improbable.</p>
+        </div>
+
+        <div class="rating-bar-container">
+             <div class="rating-label">
+                <span>Bargaining Power of Buyers</span>
+                <span class="badge badge-green">Low</span>
+            </div>
+            <div class="rating-bar">
+                <div class="rating-fill rating-low" style="width: 20%" title="Low (20%)"></div>
+            </div>
+            <p>Individual guests have negligible power. Disney's sophisticated pricing (driving +5% per capita ticket revenue, +2% guest spending in FY24) and demand management (tiered systems like Lightning Lane) demonstrate strong ability to capture value. Buyers choose between parks but cannot dictate terms.</p>
+        </div>
+
+         <div class="rating-bar-container">
+             <div class="rating-label">
+                <span>Bargaining Power of Suppliers</span>
+                 <span class="badge badge-yellow">Moderate</span>
+            </div>
+            <div class="rating-bar">
+                <div class="rating-fill rating-medium" style="width: 50%" title="Moderate (50%)"></div>
+            </div>
+             <p>Key suppliers: specialized ride tech, construction, labor. While Disney's scale provides leverage ($18.4B FY24 operating expenses), rising labor costs (union influence, wage pressures) and specialized vendors represent moderate supplier power, potentially impacting margins.</p>
+        </div>
+
+         <div class="rating-bar-container">
+             <div class="rating-label">
+                <span>Threat of Substitute Products</span>
+                 <span class="badge badge-yellow">Moderate</span>
+            </div>
+            <div class="rating-bar">
+                <div class="rating-fill rating-medium" style="width: 60%" title="Moderate (60%)"></div>
+            </div>
+            <p>Substitutes include cruises, other destinations, regional parks, home entertainment. However, the unique immersive, IP-driven, multi-day destination experience offered by Disney limits direct substitutability for its core target audience (families), supporting premium pricing.</p>
+        </div>
+
+         <div class="rating-bar-container">
+             <div class="rating-label">
+                <span>Intensity of Rivalry</span>
+                <span class="badge badge-red">High & Increasing</span>
+            </div>
+            <div class="rating-bar">
+                <div class="rating-fill rating-high" style="width: 85%" title="High (85%)"></div>
+            </div>
+            <p>Primarily a duopoly with Universal in the destination market (Orlando). Rivalry is intensifying significantly due to Epic Universe aiming to transform Universal into a "week-long destination," directly challenging WDW and projected to take ~2.6M visitors from Disney in CY25.</p>
+        </div>
+    </section>
+
+    <section id="internal-analysis">
+        <h2>Internal Analysis: VRIO & Seven Powers</h2>
+
+        <h3>VRIO Framework: Resource Assessment</h3>
+        <p>Applying the VRIO framework numerically helps visualize the strength and sustainability of Disney Parks USA's key resources and capabilities.</p>
+         <p>(Scale: 1=Very Low, 5=Very High)</p>
+
+        <table class="vrio-table">
+             <thead>
+                <tr>
+                    <th>Resource/Capability (R/C)</th>
+                    <th>Valuable (V)</th>
+                    <th>Rare (R)</th>
+                    <th>Costly to Imitate (I)</th>
+                    <th>Organized to Capture (O)</th>
+                    <th>Value Gen (V+R)</th>
+                    <th>Sustainability (I+O)</th>
+                    <th>Competitive Outcome</th>
+                </tr>
+            </thead>
+             <tbody>
+                <tr>
+                    <td>1. IP Portfolio & Integration</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">10</td>
+                    <td class="vrio-score">10</td>
+                    <td class="vrio-outcome"><span class="badge badge-green">Sustained Advantage</span></td>
+                </tr>
+                 <tr>
+                    <td>2. Brand Reputation & Nostalgia</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">10</td>
+                    <td class="vrio-score">10</td>
+                     <td class="vrio-outcome"><span class="badge badge-green">Sustained Advantage</span></td>
+                </tr>
+                <tr>
+                    <td>3. Scale & Integrated Ecosystem</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">4</td>
+                    <td class="vrio-score">10</td>
+                     <td class="vrio-score">9</td>
+                     <td class="vrio-outcome"><span class="badge badge-green">Sustained Advantage</span></td>
+                </tr>
+                <tr>
+                    <td>4. Pricing & Demand Mgmt Systems</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">4</td>
+                    <td class="vrio-score">3</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">9</td>
+                    <td class="vrio-score">8</td>
+                    <td class="vrio-outcome"><span class="badge badge-yellow">Temporary Advantage</span></td>
+                </tr>
+                 <tr>
+                    <td>5. Operational Expertise & Guest Exp.</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">4</td>
+                    <td class="vrio-score">4</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">9</td>
+                    <td class="vrio-score">9</td>
+                     <td class="vrio-outcome"><span class="badge badge-green">Sustained Advantage</span></td>
+                </tr>
+                <tr>
+                    <td>6. Walt Disney Imagineering (WDI)</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">5</td>
+                    <td class="vrio-score">10</td>
+                    <td class="vrio-score">10</td>
+                     <td class="vrio-outcome"><span class="badge badge-green">Sustained Advantage</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="chart-container">
+             <canvas id="vrioChart"></canvas>
+        </div>
+         <p><strong>VRIO Insights:</strong> Disney possesses multiple sources of Sustained Competitive Advantage (IP, Brand, Scale, WDI), forming a powerful synergistic base. Operational Expertise is also near-sustained. Pricing Systems, while currently valuable and rare, are more susceptible to imitation (rated '3' for Imitability) as competitors adopt similar dynamic models, making this a source of Temporary Advantage requiring continuous innovation. Disney appears well-organized (rated '4' or '5') to leverage most advantages.</p>
+
+        <h3>Hamilton Helmer's Seven Powers</h3>
+        <p>Analyzing through the Seven Powers lens further clarifies the durability of Disney's advantages:</p>
+        <div class="seven-powers-grid">
+            <div class="power-card">
+                <h4>1. Scale Economies</h4>
+                <div class="power-strength strength-high">Strength: High</div>
+                <div class="power-desc">Massive park operations (WDW: 25k acres) allow spreading high fixed costs (attractions, infrastructure) over millions of visitors, lowering per-guest costs vs. smaller rivals.</div>
+            </div>
+             <div class="power-card">
+                <h4>2. Network Effects</h4>
+                <div class="power-strength strength-medium">Strength: Medium</div>
+                <div class="power-desc">While not a traditional tech network effect, the "Disney Bubble" ecosystem (resorts, parks, dining, transport) creates a self-reinforcing network. Staying on-site enhances the experience and value, encouraging deeper engagement. Brand community also drives repeat visits.</div>
+            </div>
+             <div class="power-card">
+                <h4>3. Counter-Positioning</h4>
+                 <div class="power-strength strength-high">Strength: High</div>
+                 <div class="power-desc">Disney's focus on immersive, family-centric, IP-driven experiences at a premium price point differentiates it. Competitors focusing purely on thrills (Six Flags) or lower prices cannot easily replicate Disney's model without jeopardizing their own positioning.</div>
+            </div>
+             <div class="power-card">
+                <h4>4. Switching Costs</h4>
+                <div class="power-strength strength-medium">Strength: Medium</div>
+                <div class="power-desc">High planning effort, vacation package bundling, loyalty programs (DVC, Annual Passes), and the emotional investment/nostalgia create moderate switching costs, especially for repeat visitors and families invested in the Disney ecosystem.</div>
+            </div>
+             <div class="power-card">
+                <h4>5. Branding</h4>
+                 <div class="power-strength strength-high">Strength: Very High</div>
+                 <div class="power-desc">Arguably Disney's strongest power. The iconic, globally trusted brand (~100 years) evokes powerful emotions (magic, nostalgia, family) allowing premium pricing and fostering deep loyalty unmatched by competitors.</div>
+             </div>
+             <div class="power-card">
+                <h4>6. Cornered Resource</h4>
+                 <div class="power-strength strength-high">Strength: Very High</div>
+                <div class="power-desc">The vast, unique, and legally protected portfolio of IP (Disney Animation, Pixar, Marvel, Star Wars) is an irreplaceable asset that competitors cannot access or replicate, forming the foundation of park experiences.</div>
+            </div>
+             <div class="power-card">
+                <h4>7. Process Power</h4>
+                 <div class="power-strength strength-high">Strength: High</div>
+                <div class="power-desc">Decades of operational expertise ("Disney Magic" guest service), complex logistics management (WDW scale), WDI's unique design/build capabilities, and sophisticated yield management systems represent deeply ingrained, hard-to-copy processes.</div>
+            </div>
+        </div>
+         <p><strong>Seven Powers Insights:</strong> Disney leverages multiple powerful advantages, particularly Branding, Cornered Resources (IP), Scale Economies, and Process Power. Counter-Positioning reinforces its differentiation, while Network Effects and Switching Costs help retain customers within its ecosystem. This multi-pronged advantage structure creates a formidable competitive moat.</p>
+
+    </section>
+
+    <section id="competitive-positioning">
+        <h2>Competitive Positioning: Value Curve Analysis</h2>
+        <p>The Value Curve illustrates how Disney Parks USA is perceived relative to key competitors across critical factors influencing guest choice. This analysis uses estimated competitor profiles based on public perception and the provided data.</p>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: var(--blue);"></div><span>Disney (You)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: var(--orange);"></div><span>Universal (Rival 1)</span>
+            </div>
+             <div class="legend-item">
+                <div class="legend-color" style="background-color: var(--gray);"></div><span>Regional/Thrill Parks (Sub. 1 - e.g., Six Flags/Cedar Fair)</span>
+            </div>
+            <!-- Add other competitors if needed -->
+        </div>
+
+        <div class="chart-container">
+            <canvas id="valueCurveChart"></canvas>
+        </div>
+
+         <h3>Value Curve Insights (Scale 1-5)</h3>
+         <ul>
+            <li><strong>Disney's Strengths:</strong> Excels in IP/Character Appeal (5), Family-Friendliness (5), Destination Experience (5), and Guest Service (5). Technology Integration (4) is also strong.</li>
+            <li><strong>Universal's Strengths:</strong> Competes strongly on IP (4), excels in Immersive Environments (5), Attraction Quality (5), and leads in Thrill Factor (5). Closing the gap on Destination Experience (4).</li>
+             <li><strong>Regional/Thrill Parks' Strengths:</strong> Primarily compete on Thrill Factor (5) and often perceived higher on Accessibility/Affordability (4) and Value Perception (4), but lag significantly in IP, Immersion, Destination, and Service.</li>
+            <li><strong>Key Battlegrounds:</strong>
+                <ul>
+                    <li><strong>Immersive Environments:</strong> Disney (5) and Universal (5) are neck-and-neck, intensified by Epic Universe.</li>
+                     <li><strong>Value Perception:</strong> A relative weakness for both Disney (3) and Universal (3) compared to regional players (4), highlighting the challenge of justifying premium pricing.</li>
+                     <li><strong>Destination Experience:</strong> Disney leads (5), but Universal is aggressively investing (Epic Universe) to challenge this (currently 4).</li>
+                </ul>
+            </li>
+             <li><strong>Strategic Trade-offs:</strong> Disney deliberately scores lower on Thrill Factor (3) to maintain its broad family appeal, contrasting with Universal (5) and Six Flags (5). Its lowest score is Accessibility/Affordability (2), reflecting its premium strategy.</li>
+        </ul>
+
+         <h4>ERRC Framework Application</h4>
+         <table style="margin-top: 20px;">
+            <thead><tr><th>Action</th><th>Implication for Disney</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Eliminate/Reduce</strong></td><td>Reduce friction points in guest experience (wait times, booking complexity). Reduce reliance on pure price increases without corresponding value enhancement. De-emphasize generic thrill elements not tied to core IP/story.</td></tr>
+                <tr><td><strong>Raise</strong></td><td>Raise the bar on unique IP integration and immersive storytelling. Raise perceived value through tangible enhancements linked to price points (e.g., communicate LLPP reinvestment). Raise ecosystem benefits (on-property perks).</td></tr>
+                <tr><td><strong>Create</strong></td><td>Create new, unique experiences based on untapped IP (e.g., Villains). Create more personalized offerings leveraging technology and data. Create clearer communication strategies around value and pricing tiers.</td></tr>
+            </tbody>
+        </table>
+
+    </section>
+
+    <section id="strategic-challenges-swot">
+        <h2>Strategic Challenges & SWOT Analysis</h2>
+
+         <h3>Key Strategic Challenges</h3>
+         <ul>
+            <li><strong>Epic Universe Competitive Impact:</strong> Direct assault on WDW's market share (est. 2.6M visitor loss in CY25) and duration-of-stay dominance. Requires robust defensive strategies and leveraging Disney's unique advantages.</li>
+             <li><strong>Balancing Pricing Power with Value Perception:</strong> Successfully driving per cap growth (+3% US Parks) and premium offerings (LLPP up to $400+) risks alienating core segments if value doesn't keep pace. Must actively manage and communicate the value proposition.</li>
+            <li><strong>Flawless Capex Execution:</strong> Deploying the massive $60B (with ~$8B in FY25) effectively is critical for maintaining freshness and competitiveness, especially with rivals also investing heavily. ROI and on-time delivery are paramount.</li>
+             <li><strong>Maintaining Brand Cohesion & IP Integration:</strong> Integrating diverse IP (Marvel, Star Wars, Pixar, Classics) while preserving the core Disney brand magic and satisfying nostalgic fans is complex, especially against Universal's highly focused IP lands (Nintendo, Potter).</li>
+         </ul>
+
+        <h3>SWOT Analysis</h3>
+        <div class="grid-2">
+            <div class="swot-box swot-strengths">
+                <h3>Strengths</h3>
+                <ul>
+                    <li>Unmatched IP Portfolio (VRIO: 10 ValGen, 10 Sust)</li>
+                    <li>Iconic Global Brand & Nostalgia (VRIO: 10 ValGen, 10 Sust)</li>
+                    <li>Vast Scale & Integrated Ecosystem (WDW: ~23k rooms vs UNV 11k post-Epic) (VRIO: 10 ValGen, 9 Sust)</li>
+                    <li>Superior Operational Expertise & Guest Service (VRIO: 9 ValGen, 9 Sust)</li>
+                    <li>Advanced Pricing & Yield Management (+3% Per Cap Growth) (VRIO: 9 ValGen, 8 Sust - Temporary)</li>
+                     <li>Walt Disney Imagineering (WDI) Capabilities (VRIO: 10 ValGen, 10 Sust)</li>
+                </ul>
+            </div>
+            <div class="swot-box swot-weaknesses">
+                <h3>Weaknesses</h3>
+                <ul>
+                    <li>Lower Value Perception vs. Price Point (Value Curve: 3/5)</li>
+                    <li>Lower Thrill Factor vs. Key Competitors (Value Curve: 3/5 vs 5/5)</li>
+                    <li>Potential Price Sensitivity / Affordability Concerns</li>
+                    <li>Attendance Vulnerability to Focused Competition (Epic Universe ~2.6M impact)</li>
+                    <li>Complexity of Managing Diverse IP Portfolio</li>
+                     <li>Imitability of Pricing Systems (VRIO: Imitability 3/5)</li>
+                </ul>
+            </div>
+            <div class="swot-box swot-opportunities">
+                <h3>Opportunities</h3>
+                <ul>
+                    <li>Effective $60B Capex Deployment (New Lands: Villains, Avatar?)</li>
+                    <li>Enhanced Ecosystem Integration & Stickiness ("Disney Bubble")</li>
+                    <li>Leverage Data/AI for Personalization & Operations Beyond Pricing</li>
+                    <li>Develop & Communicate Clearer Value Narrative</li>
+                    <li>Expand Park Capacity/Hours via Targeted Investments</li>
+                    <li>Exploit Untapped/Unique IP Potential</li>
+                </ul>
+            </div>
+            <div class="swot-box swot-threats">
+                <h3>Threats</h3>
+                <ul>
+                    <li>Epic Universe Launch & Universal's "Week-Long Destination" Strategy</li>
+                    <li>Intensifying Rivalry & Competitor Investments</li>
+                    <li>Increased Consumer Price Sensitivity / Economic Downturn</li>
+                    <li>Changing Entertainment Preferences (Digital, Experiential)</li>
+                    <li>Rising Operational Costs (Labor, Tech)</li>
+                    <li>Negative PR / Brand Perception Issues</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="recommendations">
+        <h2>Strategic Recommendations</h2>
+
+        <div class="recommendation">
+            <h4>1. Accelerate & Differentiate IP Deployment</h4>
+             <p><strong>Rationale:</strong> Leverage primary SCA (IP/Cornered Resource) to counter Universal.</p>
+            <ul>
+                <li>Prioritize and potentially fast-track US park projects featuring unique Disney IP least replicable by Universal (e.g., Encanto, Zootopia, classic Villains).</li>
+                <li>Ensure new lands offer deep immersion matching/exceeding competitor benchmarks (Universal's Nintendo/Potter).</li>
+                 <li>Fund expansions that strategically extend park hours and capacity (e.g., Animal Kingdom potential) to absorb demand and enhance value.</li>
+            </ul>
+        </div>
+
+        <div class="recommendation">
+            <h4>2. Optimize Revenue & Proactively Manage Value Narrative</h4>
+             <p><strong>Rationale:</strong> Maximize yield from sophisticated pricing (Temporary Advantage) while mitigating brand damage from perceived high cost (Weakness/Threat).</p>
+             <ul>
+                <li>Continue refining dynamic pricing across admission/LL tiers using data analytics.</li>
+                <li><strong>Unique Insight:</strong> Earmark a specific, quantifiable percentage (e.g., 10-15%) of high-margin LLPP revenue (est. $400M+ potential) towards *visible* guest experience enhancements (e.g., improved Wi-Fi, unique character meets, enhanced parade viewing, free PhotoPass elements) or targeted value offers (off-peak discounts).</li>
+                <li>**Actively communicate this reinvestment link** in marketing and in-park signage to directly counter affordability narratives and justify premium pricing.</li>
+                <li>Pilot fully dynamic admission pricing (like Paris test) at a single US park (e.g., Epcot) to gather data for potential wider rollout.</li>
+            </ul>
+        </div>
+
+        <div class="recommendation">
+            <h4>3. Fortify the "Disney Bubble" Ecosystem</h4>
+             <p><strong>Rationale:</strong> Leverage Scale/Ecosystem SCA and increase Switching Costs to retain guests and counter Universal's expanded resort offerings.</p>
+            <ul>
+                <li>Introduce compelling, *exclusive* benefits for WDW/DLR resort guests unavailable elsewhere (e.g., guaranteed access windows for new rides, significantly earlier LL booking privileges, unique resort-only character interactions/events).</li>
+                <li>Strengthen integrated planning, booking, and transportation advantages (MagicBand+, App integration) to make staying off-property or visiting competitor parks less seamless and convenient.</li>
+            </ul>
+        </div>
+
+         <div class="recommendation">
+            <h4>4. Invest in Seamless Operations & Friction Reduction</h4>
+             <p><strong>Rationale:</strong> Bolster Operational Expertise/Process Power SCA to enhance the premium experience, justify cost, and manage crowds/complexity.</p>
+            <ul>
+                <li>Allocate capex to "invisible" technology that demonstrably improves guest flow and reduces friction: enhance mobile app stability/functionality (food ordering, wait times, LL booking), implement AI-driven crowd analytics for resource deployment, further streamline park entry/payments.</li>
+                <li>Utilize guest data beyond just pricing – personalize communication for smoother navigation, anticipate needs, and proactively address potential service issues. This reinforces premium value beyond just rides.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="conclusion">
+        <h2>Conclusion</h2>
+
+        <p>Disney Parks USA commands a formidable position in the theme park industry, built upon decades of cultivating powerful, synergistic sources of sustained competitive advantage: unparalleled IP, an iconic global brand, massive operational scale, deeply ingrained process power, and unique creative capabilities (WDI). These advantages allow Disney to pursue a successful Broad Differentiation strategy and command premium pricing.</p>
+
+        <p>However, the competitive landscape is intensifying dramatically, spearheaded by Universal's aggressive expansion with Epic Universe. This, combined with rising operational costs and increasing consumer price sensitivity, presents significant challenges. Disney's sophisticated pricing systems, while currently effective, represent a more temporary advantage vulnerable to imitation and require careful management to avoid eroding brand equity.</p>
+
+        <div class="highlight">
+            <p><strong>Path Forward:</strong> Sustained leadership requires Disney to aggressively leverage its core strengths (especially unique IP and ecosystem benefits) while directly addressing value perception. Flawless execution of the $60B capex plan is crucial for innovation and capacity expansion. Success hinges on differentiating experiences, optimizing revenue while clearly communicating reinvestment in guest value, fortifying the integrated resort ecosystem, and delivering a seamless, technologically enhanced guest experience that unequivocally justifies its premium positioning in the face of heightened competition.</p>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // --- VRIO Scatter Plot ---
+            const vrioCtx = document.getElementById('vrioChart').getContext('2d');
+            const vrioData = {
+                datasets: [{
+                    label: '1. IP Portfolio',
+                    data: [{ x: 10, y: 10 }], // Sust = I+O, ValGen = V+R
+                    backgroundColor: 'rgba(0, 119, 200, 0.7)', // Blue
+                    pointRadius: 8, pointHoverRadius: 10
+                }, {
+                    label: '2. Brand/Nostalgia',
+                    data: [{ x: 10, y: 10 }],
+                    backgroundColor: 'rgba(0, 119, 200, 0.7)', // Blue
+                    pointRadius: 8, pointHoverRadius: 10
+                }, {
+                    label: '3. Scale/Ecosystem',
+                    data: [{ x: 9, y: 10 }],
+                    backgroundColor: 'rgba(0, 119, 200, 0.7)', // Blue
+                    pointRadius: 8, pointHoverRadius: 10
+                }, {
+                    label: '4. Pricing Systems',
+                    data: [{ x: 8, y: 9 }],
+                    backgroundColor: 'rgba(255, 193, 7, 0.7)', // Yellow
+                    pointRadius: 8, pointHoverRadius: 10
+                 }, {
+                    label: '5. Operations/Guest Exp',
+                    data: [{ x: 9, y: 9 }],
+                    backgroundColor: 'rgba(40, 167, 69, 0.7)', // Green
+                    pointRadius: 8, pointHoverRadius: 10
+                 }, {
+                     label: '6. WDI',
+                     data: [{ x: 10, y: 10 }],
+                     backgroundColor: 'rgba(0, 119, 200, 0.7)', // Blue
+                     pointRadius: 8, pointHoverRadius: 10
+                }]
+            };
+
+            new Chart(vrioCtx, {
+                type: 'scatter',
+                data: vrioData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allow flexible sizing
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'VRIO Analysis: Value Generation vs. Sustainability',
+                            font: { size: 18 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += `(Sust: ${context.parsed.x}, ValGen: ${context.parsed.y})`;
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                             display: true, // Show legend to identify points
+                             position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Sustainability (Imitability + Organization)', font: { size: 14 } },
+                            min: 0,
+                            max: 10,
+                            ticks: { stepSize: 1 }
+                        },
+                        y: {
+                            title: { display: true, text: 'Value Generation (Value + Rarity)', font: { size: 14 } },
+                            min: 0,
+                            max: 10,
+                            ticks: { stepSize: 1 }
+                        }
+                    },
+                    // Optional: Add lines for quadrants
+                    annotation: {
+                        annotations: {
+                            lineX: { type: 'line', xMin: 5, xMax: 5, borderColor: 'rgba(0,0,0,0.2)', borderWidth: 1 },
+                            lineY: { type: 'line', yMin: 5, yMax: 5, borderColor: 'rgba(0,0,0,0.2)', borderWidth: 1 }
+                        }
+                    }
+                }
+            });
+
+
+            // --- Value Curve Line Chart ---
+            const valueCurveCtx = document.getElementById('valueCurveChart').getContext('2d');
+            const valueCurveLabels = [ // Use descriptive labels from original radar/analysis
+                'IP/Character Appeal', 'Immersive Environments', 'Family-Friendliness',
+                'Destination Experience', 'Attraction Quality', 'Guest Service',
+                'Value Perception', 'Thrill Factor', 'Technology Integration',
+                'Accessibility & Affordability'
+            ];
+             // Scores from the provided line chart image (mapping VD1-VD10):
+            const disneyScores =   [5, 5, 5, 5, 4, 5, 3, 3, 4, 2]; // Blue line
+            const universalScores = [2, 4, 3, 3, 4, 4, 4, 5, 2, 2]; // Orange line (Rival 1)
+            const regionalScores =  [2, 2, 3, 3, 3, 3, 3, 3, 1, 4]; // Gray line (Sub 1) - *Note: Adjusted scale/values from image for clarity if needed*
+                                                                    // Corrected Gray line based on re-reading image: [2, 3, 3, 3, 3, 3, 4, 4, 3, 4]
+
+             const valueCurveData = {
+                labels: valueCurveLabels,
+                datasets: [
+                    {
+                        label: 'Disney (You)',
+                        data: disneyScores,
+                        borderColor: 'var(--blue)',
+                        backgroundColor: 'rgba(0, 119, 200, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        tension: 0.1 // Slight curve
+                    },
+                     {
+                        label: 'Universal (Rival 1)',
+                         data: [4, 5, 4, 4, 5, 4, 3, 5, 3, 3], // Using scores from original Radar chart for Universal for better comparison
+                         //data: universalScores, // Use this if strictly following the line graph image scores
+                         borderColor: 'var(--orange)',
+                         backgroundColor: 'rgba(255, 127, 14, 0.1)',
+                         borderWidth: 3,
+                         pointRadius: 5,
+                         pointHoverRadius: 7,
+                         tension: 0.1
+                    },
+                     {
+                        label: 'Regional/Thrill (Sub 1)',
+                         //data: [2, 2, 3, 2, 3, 2, 4, 5, 2, 4], // Using scores from original Radar chart for Six Flags for better comparison
+                         data: regionalScores, // Use this if strictly following the line graph image scores
+                         borderColor: 'var(--gray)',
+                         backgroundColor: 'rgba(127, 127, 127, 0.1)',
+                         borderWidth: 3,
+                         pointRadius: 5,
+                         pointHoverRadius: 7,
+                         tension: 0.1
+                     }
+                ]
+            };
+
+             new Chart(valueCurveCtx, {
+                type: 'line',
+                data: valueCurveData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Theme Park Value Curve Comparison',
+                            font: { size: 18 }
+                        },
+                         legend: {
+                             display: false // Legend is handled by the custom HTML legend above
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Score (1=Low, 5=High)', font: { size: 14 } },
+                            suggestedMin: 0,
+                            suggestedMax: 5.5, // Give some top margin
+                            ticks: { stepSize: 1 }
+                        },
+                         x: {
+                            title: { display: true, text: 'Competitive Factors', font: { size: 14 } },
+                            ticks: { autoSkip: false, maxRotation: 45, minRotation: 30 } // Rotate labels if they overlap
+                         }
+                    }
+                }
+            });
+
+        }); // End DOMContentLoaded
+    </script>
+</div> <!-- End container -->
+Use code with caution.
+</body>
+</html>
+--- END OF REVISED index.html ---
+
